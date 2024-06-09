@@ -1,0 +1,141 @@
+blueprint:
+  name: Schneider Electric LG FUGA 550D6001 Ultimate (ZHA)
+  description: Use the press/hold/release actions from all 4 buttons triggered by LK FUGA 550D6001 switch using ZHA.
+  domain: automation
+  author: ChatGPT
+  input:
+    controller_ieee:
+      name: (ZHA) Controller IEEE Address
+      description: The IEEE address of the controller to use for the automation.
+      selector:
+        text:
+    top_left_pressed:
+      name: 1. Top Left Pressed
+      default: []
+      selector:
+        action: {}
+    top_left_held:
+      name: 1. Top Left Held
+      default: []
+      selector:
+        action: {}
+    top_left_released:
+      name: 1. Top Left Released
+      default: []
+      selector:
+        action: {}
+    top_right_pressed:
+      name: 2. Top Right Pressed
+      default: []
+      selector:
+        action: {}
+    top_right_held:
+      name: 2. Top Right Held
+      default: []
+      selector:
+        action: {}
+    top_right_released:
+      name: 2. Top Right Released
+      default: []
+      selector:
+        action: {}
+    bottom_left_pressed:
+      name: 3. Bottom Left Pressed
+      default: []
+      selector:
+        action: {}
+    bottom_left_held:
+      name: 3. Bottom Left Held
+      default: []
+      selector:
+        action: {}
+    bottom_left_released:
+      name: 3. Bottom Left Released
+      default: []
+      selector:
+        action: {}
+    bottom_right_pressed:
+      name: 4. Bottom Right Pressed
+      default: []
+      selector:
+        action: {}
+    bottom_right_held:
+      name: 4. Bottom Right Held
+      default: []
+      selector:
+        action: {}
+    bottom_right_released:
+      name: 4. Bottom Right Released
+      default: []
+      selector:
+        action: {}
+  source_url: 
+mode: single
+max_exceeded: silent
+trigger:
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_ieee: !input controller_ieee
+action:
+  - variables:
+      command: "{{ trigger.event.data.command }}"
+      args: "{{ trigger.event.data.args }}"
+      endpoint_id: "{{ trigger.event.data.endpoint_id }}"
+      cluster_id: "{{ trigger.event.data.cluster_id }}"
+  - choose:
+      # Top Left Button
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'on' and endpoint_id == 21 and cluster_id == 6 }}"
+        sequence: !input top_left_pressed
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'move_with_on_off' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_left_held
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'stop' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_left_released
+
+      # Top Right Button
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'off' and endpoint_id == 21 and cluster_id == 6 }}"
+        sequence: !input top_right_pressed
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'move' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_right_held
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'stop' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_right_released
+
+      # Bottom Left Button
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'on' and endpoint_id == 22 and cluster_id == 6 }}"
+        sequence: !input bottom_left_pressed
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'move_with_on_off' and endpoint_id == 22 and cluster_id == 8 }}"
+        sequence: !input bottom_left_held
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'stop' and endpoint_id == 22 and cluster_id == 8 }}"
+        sequence: !input bottom_left_released
+
+      # Bottom Right Button
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'off' and endpoint_id == 22 and cluster_id == 6 }}"
+        sequence: !input bottom_right_pressed
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'move' and endpoint_id == 22 and cluster_id == 8 }}"
+        sequence: !input bottom_right_held
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'stop' and endpoint_id == 22 and cluster_id == 8 }}"
+        sequence: !input bottom_right_released
