@@ -69,28 +69,12 @@ action:
           - condition: template
             value_template: "{{ command == 'on' and endpoint_id == 21 and cluster_id == 6 }}"
         sequence: !input top_left_pressed
-      - conditions:
-          - condition: template
-            value_template: "{{ command == 'move' and endpoint_id == 21 and cluster_id == 8 }}"
-        sequence: !input top_left_held
-      - conditions:
-          - condition: template
-            value_template: "{{ command == 'stop' and endpoint_id == 21 and cluster_id == 8 }}"
-        sequence: !input top_left_released
 
       # Top Right Button
       - conditions:
           - condition: template
             value_template: "{{ command == 'off' and endpoint_id == 21 and cluster_id == 6 }}"
         sequence: !input top_right_pressed
-      - conditions:
-          - condition: template
-            value_template: "{{ command == 'move' and endpoint_id == 21 and cluster_id == 8 }}"
-        sequence: !input top_right_held
-      - conditions:
-          - condition: template
-            value_template: "{{ command == 'stop' and endpoint_id == 21 and cluster_id == 8 }}"
-        sequence: !input top_right_released
 
       # Bottom Left Button
       - conditions:
