@@ -14,8 +14,28 @@ blueprint:
       default: []
       selector:
         action: {}
+    top_left_held:
+      name: 1. Top Left Held
+      default: []
+      selector:
+        action: {}
+    top_left_released:
+      name: 1. Top Left Released
+      default: []
+      selector:
+        action: {}
     top_right_pressed:
       name: 2. Top Right Pressed
+      default: []
+      selector:
+        action: {}
+    top_right_held:
+      name: 2. Top Right Held
+      default: []
+      selector:
+        action: {}
+    top_right_released:
+      name: 2. Top Right Released
       default: []
       selector:
         action: {}
@@ -69,12 +89,28 @@ action:
           - condition: template
             value_template: "{{ command == 'on' and endpoint_id == 21 and cluster_id == 6 }}"
         sequence: !input top_left_pressed
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'move_with_on_off' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_left_held
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'stop' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_left_released
 
       # Top Right Button
       - conditions:
           - condition: template
             value_template: "{{ command == 'off' and endpoint_id == 21 and cluster_id == 6 }}"
         sequence: !input top_right_pressed
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'move' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_right_held
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'stop' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_right_released
 
       # Bottom Left Button
       - conditions:
@@ -83,7 +119,7 @@ action:
         sequence: !input bottom_left_pressed
       - conditions:
           - condition: template
-            value_template: "{{ command == 'move' and endpoint_id == 22 and cluster_id == 8 }}"
+            value_template: "{{ command == 'move_with_on_off' and endpoint_id == 22 and cluster_id == 8 }}"
         sequence: !input bottom_left_held
       - conditions:
           - condition: template
@@ -93,11 +129,7 @@ action:
       # Bottom Right Button
       - conditions:
           - condition: template
-            value_template: "{{ command == 'on' and endpoint_id == 22 and cluster_id == 6 }}"
-        sequence: !input bottom_left_pressed
-      - conditions:
-          - condition: template
-            value_template: "{{ command == 'stop' and endpoint_id == 22 and cluster_id == 6 }}"
+            value_template: "{{ command == 'off' and endpoint_id == 22 and cluster_id == 6 }}"
         sequence: !input bottom_right_pressed
       - conditions:
           - condition: template
