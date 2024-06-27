@@ -4,29 +4,11 @@ blueprint:
   domain: automation
   author: Thomas Simonsen
   input:
-    controller_device:
-      name: (ZHA) Controller Device
-      description: Select the controller device to use for the automation.
+    controller_ieee:
+      name: (ZHA) Controller IEEE Address
+      description: The IEEE address of the controller to use for the automation. You can find the IEEE address in Home Assistant by navigating to Configuration > Devices & Services > Devices, then selecting your device and finding the "IEEE" field.
       selector:
-        device:
-          integration: zha
-    light:
-      name: Light(s)
-      description: The light(s) to control
-      selector:
-        target:
-          entity:
-            domain: light
-    hold_time:
-      name: Hold Time
-      description: Time between the execution of the brighter/darker actions when holding the brighter/darker button.
-      default: 0.5
-      selector:
-        number:
-          min: 0.1
-          max: 2
-          step: 0.1
-          unit_of_measurement: seconds
+        text:
     top_left_pressed:
       name: 1. Top Left Pressed
       default: []
@@ -74,7 +56,7 @@ trigger:
   - platform: event
     event_type: zha_event
     event_data:
-      device_ieee: !input controller_device
+      device_ieee: !input controller_ieee
 action:
   - variables:
       command: "{{ trigger.event.data.command }}"
@@ -82,48 +64,62 @@ action:
       endpoint_id: "{{ trigger.event.data.endpoint_id }}"
       cluster_id: "{{ trigger.event.data.cluster_id }}"
   - choose:
-      # Top Left Button (On)
+      # Top Left Button
       - conditions:
           - condition: template
             value_template: "{{ command == 'on' and endpoint_id == 21 and cluster_id == 6 }}"
         sequence: !input top_left_pressed
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'move' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_left_held
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'stop' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_left_released
 
-      # Top Right Button (Off)
+      # Top Right Button
       - conditions:
           - condition: template
             value_template: "{{ command == 'off' and endpoint_id == 21 and cluster_id == 6 }}"
         sequence: !input top_right_pressed
-
-      # Bottom Left Button (Increase Brightness)
       - conditions:
           - condition: template
-            value_template: "{{ command == 'move' and endpoint_id == 22 and cluster_id == 8 and args[0] == 1 }}"
-        sequence:
-          - repeat:
-              until:
-                - condition: template
-                  value_template: "{{ is_state_attr('zha_event', 'command', 'stop') and endpoint_id == 22 and cluster_id == 8 }}"
-              sequence:
-                - service: light.turn_on
-                  target: !input light
-                  data:
-                    brightness_step_pct: 10
-                    transition: !input hold_time
-                - delay: !input hold_time
-
-      # Bottom Right Button (Decrease Brightness)
+            value_template: "{{ command == 'move' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_right_held
       - conditions:
           - condition: template
-            value_template: "{{ command == 'move' and endpoint_id == 22 and cluster_id == 8 and args[0] == 1 }}"
-        sequence:
-          - repeat:
-              until:
-                - condition: template
-                  value_template: "{{ is_state_attr('zha_event', 'command', 'stop') and endpoint_id == 22 and cluster_id == 8 }}"
-              sequence:
-                - service: light.turn_on
-                  target: !input light
-                  data:
-                    brightness_step_pct: -10
-                    transition: !input hold_time
-                - delay: !input hold_time
+            value_template: "{{ command == 'stop' and endpoint_id == 21 and cluster_id == 8 }}"
+        sequence: !input top_right_released
+
+      # Bottom Left Button
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'on' and endpoint_id == 22 and cluster_id == 6 }}"
+        sequence: !input bottom_left_pressed
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'move' and endpoint_id == 22 and cluster_id == 8 }}"
+        sequence: !input bottom_left_held
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'stop' and endpoint_id == 22 and cluster_id == 8 }}"
+        sequence: !input bottom_left_released
+
+      # Bottom Right Button
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'on' and endpoint_id == 22 and cluster_id == 6 }}"
+        sequence: !input bottom_left_pressed
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'stop' and endpoint_id == 22 and cluster_id == 6 }}"
+        sequence: !input bottom_right_pressed
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'move' and endpoint_id == 22 and cluster_id == 8 }}"
+        sequence: !input bottom_right_held
+      - conditions:
+          - condition: template
+            value_template: "{{ command == 'stop' and endpoint_id == 22 and cluster_id == 8 }}"
+        sequence: !input bottom_right_released
