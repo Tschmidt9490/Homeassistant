@@ -2,40 +2,37 @@ blueprint:
   name: Schneider Electric LG FUGA 550D6001 Ultimate (ZHA)
   description: Use the press/hold/release actions from all 4 buttons triggered by LK FUGA 550D6001 switch using ZHA.
   domain: automation
-  author: ChatGPT
+  author: Thomas Simonsen
   input:
     controller_ieee:
       name: (ZHA) Controller IEEE Address
       description: The IEEE address of the controller to use for the automation. You can find the IEEE address in Home Assistant by navigating to Configuration > Devices & Services > Devices, then selecting your device and finding the "IEEE" field.
       selector:
         text:
+    light:
+      name: Light(s)
+      description: The light(s) to control
+      selector:
+        target:
+          entity:
+            domain: light
+    hold_time:
+      name: Hold Time
+      description: Time between the execution of the brighter/darker actions when holding the brighter/darker button.
+      default: 0.5
+      selector:
+        number:
+          min: 0.1
+          max: 2
+          step: 0.1
+          unit_of_measurement: seconds
     top_left_pressed:
       name: 1. Top Left Pressed
       default: []
       selector:
         action: {}
-    top_left_held:
-      name: 1. Top Left Held
-      default: []
-      selector:
-        action: {}
-    top_left_released:
-      name: 1. Top Left Released
-      default: []
-      selector:
-        action: {}
     top_right_pressed:
       name: 2. Top Right Pressed
-      default: []
-      selector:
-        action: {}
-    top_right_held:
-      name: 2. Top Right Held
-      default: []
-      selector:
-        action: {}
-    top_right_released:
-      name: 2. Top Right Released
       default: []
       selector:
         action: {}
@@ -84,57 +81,57 @@ action:
       endpoint_id: "{{ trigger.event.data.endpoint_id }}"
       cluster_id: "{{ trigger.event.data.cluster_id }}"
   - choose:
-      # Top Left Button
+      # Top Left Button (On)
       - conditions:
           - condition: template
             value_template: "{{ command == 'on' and endpoint_id == 21 and cluster_id == 6 }}"
         sequence: !input top_left_pressed
-      - conditions:
-          - condition: template
-            value_template: "{{ command == 'move_with_on_off' and endpoint_id == 21 and cluster_id == 8 }}"
-        sequence: !input top_left_held
-      - conditions:
-          - condition: template
-            value_template: "{{ command == 'stop' and endpoint_id == 21 and cluster_id == 8 }}"
-        sequence: !input top_left_released
 
-      # Top Right Button
+      # Top Right Button (Off)
       - conditions:
           - condition: template
             value_template: "{{ command == 'off' and endpoint_id == 21 and cluster_id == 6 }}"
         sequence: !input top_right_pressed
-      - conditions:
-          - condition: template
-            value_template: "{{ command == 'move' and endpoint_id == 21 and cluster_id == 8 }}"
-        sequence: !input top_right_held
-      - conditions:
-          - condition: template
-            value_template: "{{ command == 'stop' and endpoint_id == 21 and cluster_id == 8 }}"
-        sequence: !input top_right_released
 
-      # Bottom Left Button
+      # Bottom Left Button (Increase Brightness)
       - conditions:
           - condition: template
-            value_template: "{{ command == 'on' and endpoint_id == 22 and cluster_id == 6 }}"
-        sequence: !input bottom_left_pressed
-      - conditions:
-          - condition: template
-            value_template: "{{ command == 'move_with_on_off' and endpoint_id == 22 and cluster_id == 8 }}"
-        sequence: !input bottom_left_held
+            value_template: "{{ command == 'move' and endpoint_id == 22 and cluster_id == 8 and args[0] == 1 }}"
+        sequence:
+          - repeat:
+              while: "true"
+              sequence:
+                - service: light.turn_on
+                  target: !input light
+                  data:
+                    brightness_step_pct: 10
+                    transition: !input hold_time
+                - delay: !input hold_time
+                - condition: template
+                  value_template: "{{ command == 'stop' }}"
+                  continue: false
       - conditions:
           - condition: template
             value_template: "{{ command == 'stop' and endpoint_id == 22 and cluster_id == 8 }}"
         sequence: !input bottom_left_released
 
-      # Bottom Right Button
+      # Bottom Right Button (Decrease Brightness)
       - conditions:
           - condition: template
-            value_template: "{{ command == 'off' and endpoint_id == 22 and cluster_id == 6 }}"
-        sequence: !input bottom_right_pressed
-      - conditions:
-          - condition: template
-            value_template: "{{ command == 'move' and endpoint_id == 22 and cluster_id == 8 }}"
-        sequence: !input bottom_right_held
+            value_template: "{{ command == 'move' and endpoint_id == 22 and cluster_id == 8 and args[0] == 1 }}"
+        sequence:
+          - repeat:
+              while: "true"
+              sequence:
+                - service: light.turn_on
+                  target: !input light
+                  data:
+                    brightness_step_pct: -10
+                    transition: !input hold_time
+                - delay: !input hold_time
+                - condition: template
+                  value_template: "{{ command == 'stop' }}"
+                  continue: false
       - conditions:
           - condition: template
             value_template: "{{ command == 'stop' and endpoint_id == 22 and cluster_id == 8 }}"
